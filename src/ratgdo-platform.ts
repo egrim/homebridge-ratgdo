@@ -129,6 +129,16 @@ export class RatgdoPlatform implements DynamicPlatformPlugin {
   // Configure and start our MQTT broker.
   private configureBroker(): void {
 
+    this.broker.authorizePublish = (_client, packet, callback): void => {
+      const commandRegex = new RegExp("^([^/]+)/command/.+$", "gi");
+
+      if (commandRegex.test(packet.topic)) {
+        return callback(new Error("Clients are not allowed to publish command topics"));
+      }
+
+      return callback(null);
+    };
+
     // Capture any publish events to our MQTT broker for processing.
     this.broker.on("publish", (packet): void => {
 
